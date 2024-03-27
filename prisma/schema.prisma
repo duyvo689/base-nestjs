@@ -1,0 +1,150 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum active {
+  ACTIVE
+  INACTIVE
+  DELETE
+  PENDING
+}
+
+enum actionFunctionLog {
+  READ
+  UPDATE
+  CREATE
+  DELETE
+}
+
+enum functionNameLog {
+  USER
+  ORDER
+}
+
+model users {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId  String   @unique
+  email     String?  @unique
+  name      String
+  nickname  String?
+  phone     String?  @unique
+  phone2    String?
+  avatar    String?
+  rankId    String   @db.Uuid
+  active    active   @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  rank ranks @relation(fields: [rankId], references: [id])
+}
+
+model userClinic {
+  userId    String   @db.Uuid
+  clinicId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([userId, clinicId])
+}
+
+model ranks {
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
+  active             active   @default(ACTIVE)
+  amountMaintainRank Int?
+  convertPoints      Int?
+  description        String?
+  expenseAmount      Int?
+  maxPoint           Int?
+  minPoint           Int?
+  name               String?
+  users              users[]
+}
+
+model staffs {
+  id             String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId       String  @unique
+  email          String? @unique
+  companyEmail   String? @unique
+  name           String
+  phone          String? @unique
+  phone2         String? @unique
+  avatar         String?
+  hashedPassword String?
+  omiSipNumber   String?
+  omiCallEmail   String?
+  zaloId         String?
+  address        String?
+  city           String?
+
+  active    active   @default(PENDING)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model permissions {
+  id         String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  roleId     String? @db.Uuid
+  action     String?
+  subject    String?
+  conditions Json?
+
+  role      roles?   @relation(fields: [roleId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("permissions")
+}
+
+model roles {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  viName      String
+  enName      String
+  active      active        @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  permissions permissions[]
+}
+
+model staffRole {
+  staffId   String   @db.Uuid
+  roleId    String   @db.Uuid
+  clinicId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([staffId, roleId, clinicId])
+}
+
+model clinics {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  shortName String
+  address   String?
+  hotline   String?
+  city      String?
+  latitude  Float?
+  longitude Float?
+  avatar    String?
+  active    active   @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model functionLogs {
+  id           Int               @id @default(autoincrement())
+  staffId      String            @db.Uuid
+  recordId     String            @db.Uuid
+  staffName    String
+  functionName functionNameLog?
+  action       actionFunctionLog
+  description  String?
+  createdAt    DateTime          @default(now()) @db.Timestamptz(6)
+}
+
+model systemLogs {
+  id        Int      @id @default(autoincrement())
+  userName  String?
+  path      String
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
