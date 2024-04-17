@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResourcesModule } from './resources/resources.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ResourcesModule } from './resources/resources.module';
     ScheduleModule.forRoot(),
     CacheModule.register({ isGlobal: true }),
     ResourcesModule,
+    AuthModule
   ],
   controllers: [AppController],
 })

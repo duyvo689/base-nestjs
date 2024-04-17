@@ -5,14 +5,6 @@ export class CreateLogDto {
     @IsString()
     @IsNotEmpty()
     recordId: string;
-  
-    @IsString()
-    @IsNotEmpty()
-    staffId: string;
-  
-    @IsString()
-    @IsNotEmpty()
-    staffName: string;
 
     @IsString()
     @IsNotEmpty()

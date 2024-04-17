@@ -6,18 +6,38 @@ import { StaffService } from 'src/resources/staff/staff.service';
 export class AuthService {
   constructor(
     private staffService: StaffService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async signIn(
     username: string,
     pass: string,
   ): Promise<{ access_token: string }> {
-    const user:any = await this.staffService.findOne(1);
+    const user: any = await this.staffService.findOne(1);
     if (user?.password !== pass) {
       throw new UnauthorizedException();
     }
     const payload = { sub: user.userId, username: user.username };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
+  }
+
+  async signUp(
+    username: string,
+    pass: string,
+  ): Promise<{ access_token: string }> {
+    const user = {
+      userId: 1,
+      username: 'duy vo',
+      roles: ['admin'],
+    };
+
+    const payload = {
+      sub: user.userId,
+      username: user.username,
+      roles: ['admin'],
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

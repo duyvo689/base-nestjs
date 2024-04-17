@@ -28,6 +28,13 @@ enum functionNameLog {
   ORDER
 }
 
+enum bookingStatus {
+  NO_SHOW
+  CHECK_IN
+  UNDER_TREATMENT
+  LEFT
+}
+
 model users {
   id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   customId  String   @unique
@@ -38,71 +45,87 @@ model users {
   phone2    String?
   avatar    String?
   rankId    String   @db.Uuid
+  creatorId String?  @db.Uuid
   active    active   @default(ACTIVE)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   rank ranks @relation(fields: [rankId], references: [id])
 }
 
-model userClinic {
-  userId    String   @db.Uuid
-  clinicId  String   @db.Uuid
+model userAttributes {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String   @db.Uuid
+  display   String
+  type      String
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
 
-  @@id([userId, clinicId])
+model userValues {
+  userId          String   @db.Uuid
+  userAttributeId String   @db.Uuid
+  value           String
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([userId, userAttributeId])
 }
 
 model ranks {
-  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  createdAt          DateTime @default(now()) @db.Timestamptz(6)
-  active             active   @default(ACTIVE)
-  amountMaintainRank Int?
-  convertPoints      Int?
-  description        String?
-  expenseAmount      Int?
-  maxPoint           Int?
-  minPoint           Int?
-  name               String?
-  users              users[]
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  active        active   @default(ACTIVE)
+  convertPoints Int?
+  description   String?
+  maxPoints     Int?
+  minPoints     Int?
+  name          String?
+  hexColor      String
+  users         users[]
 }
 
 model staffs {
   id             String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   customId       String  @unique
   email          String? @unique
-  companyEmail   String? @unique
   name           String
   phone          String? @unique
   phone2         String? @unique
   avatar         String?
   hashedPassword String?
-  omiSipNumber   String?
-  omiCallEmail   String?
-  zaloId         String?
-  address        String?
-  city           String?
 
-  active    active   @default(PENDING)
+  active    active     @default(PENDING)
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+  bookings  bookings[]
+}
+
+model staffAttributes {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String   @db.Uuid
+  display   String
+  type      String
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
-model permissions {
-  id         String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  roleId     String? @db.Uuid
-  action     String?
-  subject    String?
-  conditions Json?
+model staffValues {
+  staffId          String   @db.Uuid
+  staffAttributeId String   @db.Uuid
+  value            String
+  createdAt        DateTime @default(now()) @db.Timestamptz(6)
 
+  @@id([staffId, staffAttributeId])
+}
+
+model permissions {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  roleId    String?  @db.Uuid
+  action    String?
   role      roles?   @relation(fields: [roleId], references: [id])
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  @@map("permissions")
 }
 
 model roles {
   id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   viName      String
-  enName      String
+  shortName   String
   active      active        @default(ACTIVE)
   createdAt   DateTime      @default(now()) @db.Timestamptz(6)
   permissions permissions[]
@@ -115,6 +138,14 @@ model staffRole {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 
   @@id([staffId, roleId, clinicId])
+}
+
+model userClinic {
+  userId    String   @db.Uuid
+  clinicId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([userId, clinicId])
 }
 
 model clinics {
@@ -142,9 +173,113 @@ model functionLogs {
   createdAt    DateTime          @default(now()) @db.Timestamptz(6)
 }
 
-model systemLogs {
-  id        Int      @id @default(autoincrement())
-  userName  String?
-  path      String
+model orders {
+  id String @id @unique
+
+  creatorId String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model orderItems {
+  id           String   @id @unique
+  orderId      String
+  name         String
+  price        Int
+  discount     Int
+  quantity     Int
+  customerPaid Int
+  creatorId    String   @db.Uuid
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model orderServices {
+  id          String   @id @unique
+  orderItemId String
+  serviceId   String
+  serviceName String
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model bookings {
+  id              String            @id @unique
+  userId          String            @db.Uuid
+  doctorId        String            @db.Uuid
+  technicianId    String            @db.Uuid
+  dateFrom        DateTime
+  dateTo          DateTime
+  creatorId       String            @db.Uuid
+  notes           String?
+  checkinTime     DateTime?
+  leftTime        DateTime?
+  treatmentTime   DateTime?
+  bookingStatus   bookingStatus     @default(NO_SHOW)
+  isCancel        Boolean           @default(false)
+  leftReasonId    String?           @db.Uuid
+  leftNotes       String?
+  cancelReasonId  String?           @db.Uuid
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
+  staff           staffs?           @relation(fields: [creatorId], references: [id])
+  cancelReason    cancelReason?     @relation(fields: [cancelReasonId], references: [id])
+  bookingServices bookingServices[]
+}
+
+model bookingServices {
+  bookingId   String
+  serviceId   String
+  serviceName String
+  booking     bookings? @relation(fields: [bookingId], references: [id])
+  service     services? @relation(fields: [serviceId], references: [id])
+
+  @@id([bookingId, serviceId])
+}
+
+model cancelReason {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  description String?
+  active      active     @default(ACTIVE)
+  creatorId   String     @db.Uuid
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  bookings    bookings[]
+}
+
+model leftReason {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  description String?
+  active      active     @default(ACTIVE)
+  creatorId   String     @db.Uuid
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  bookings    bookings[]
+}
+
+model services {
+  id              String            @id @unique
+  name            String
+  frPrice         Int
+  toPrice         Int
+  unit            String
+  description     String?
+  categoryId      String            @db.Uuid
+  creatorId       String            @db.Uuid
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  bookingServices bookingServices[]
+}
+
+model combo {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  unit      String
+  creatorId String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model categories {
+  id          String   @id @unique
+  name        String
+  description String?
+  categoryId  String   @db.Uuid
+  creatorId   String   @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
 }
