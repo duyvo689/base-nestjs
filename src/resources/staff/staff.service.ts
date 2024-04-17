@@ -1,26 +1,67 @@
 import { Injectable } from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StaffService {
-  create(createStaffDto: CreateStaffDto) {
-    return 'This action adds a new staff';
-  }
+  constructor(private prismaService: PrismaService) {}
 
-  findAll() {
-    return `This action returns all staff`;
-  }
+  async getProfileStaffById(id: string) {
+    try {
+      const staff: any = await this.prismaService.staffs.findFirst({
+        where: {
+          id: id,
+          active: {
+            notIn: ['DELETE', 'INACTIVE'],
+          },
+        },
+        include: {
+          role: true,
+        },
+      });
+      const permissions = await this.prismaService.rolePermission.findMany({
+        where: {
+          roleId: staff.roleId,
+        },
+        select: {
+          permission: true,
+        },
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} staff`;
-  }
+      const clinics = await this.prismaService.staffClinic.findMany({
+        where: {
+          staffId: staff.id,
+          clinic: {
+            active: 'ACTIVE',
+          },
+        },
+        select: {
+          clinic: true,
+        },
+      });
 
-  update(id: number, updateStaffDto: UpdateStaffDto) {
-    return `This action updates a #${id} staff`;
-  }
+      const notEnterPathProjects =
+        await this.prismaService.rolePathProject.findMany({
+          where: {
+            roleId: staff.roleId,
+          },
+          select: {
+            pathProject: true,
+          },
+        });
 
-  remove(id: number) {
-    return `This action removes a #${id} staff`;
+      staff.permissions = permissions.map((p) => p.permission.shortName);
+      staff.clinics = clinics.map((p) => p.clinic);
+      staff.notEnterPathProjects = notEnterPathProjects.map(
+        (p) => p.pathProject.path,
+      );
+
+      delete staff.hashedPassword;
+
+      return staff;
+    } catch (error) {
+      console.log('🚀 ~ StaffService ~ getProfileStaffById ~ error:', error);
+    }
   }
 }

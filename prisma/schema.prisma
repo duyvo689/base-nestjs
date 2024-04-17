@@ -84,60 +84,80 @@ model ranks {
 
 model staffs {
   id             String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId       String?  @unique
+  customId       String? @unique
   email          String? @unique
   name           String
   phone          String? @unique
   phone2         String? @unique
   avatar         String?
+  roleId         String? @db.Uuid
   hashedPassword String?
 
-  active    active     @default(PENDING)
-  createdAt DateTime   @default(now()) @db.Timestamptz(6)
-  bookings  bookings[]
-}
-
-model staffAttributes {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name      String   @db.Uuid
-  display   String
-  type      String
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-}
-
-model staffValues {
-  staffId          String   @db.Uuid
-  staffAttributeId String   @db.Uuid
-  value            String
-  createdAt        DateTime @default(now()) @db.Timestamptz(6)
-
-  @@id([staffId, staffAttributeId])
+  active      active        @default(PENDING)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  bookings    bookings[]
+  role        roles?        @relation(fields: [roleId], references: [id])
+  staffClinic staffClinic[]
 }
 
 model permissions {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  roleId    String?  @db.Uuid
-  action    String?
-  role      roles?   @relation(fields: [roleId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id             String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  shortName      String
+  displayName    String
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermission rolePermission[]
+}
+
+model pathProjects {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pageName        String
+  path            String
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermission  rolePermission[]
+  rolePathProject rolePathProject[]
 }
 
 model roles {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  viName      String
-  shortName   String
-  active      active        @default(ACTIVE)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
-  permissions permissions[]
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  displayName     String
+  shortName       String
+  active          active            @default(ACTIVE)
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  staffs          staffs[]
+  rolePermission  rolePermission[]
+  rolePathProject rolePathProject[]
 }
 
-model staffRole {
+model rolePermission {
+  roleId         String        @db.Uuid
+  permissionId   String        @db.Uuid
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  role           roles         @relation(fields: [roleId], references: [id])
+  permission     permissions   @relation(fields: [permissionId], references: [id])
+  pathProjects   pathProjects? @relation(fields: [pathProjectsId], references: [id])
+  pathProjectsId String?       @db.Uuid
+
+  @@id([roleId, permissionId])
+}
+
+model rolePathProject {
+  roleId        String       @db.Uuid
+  pathProjectId String       @db.Uuid
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+  role          roles        @relation(fields: [roleId], references: [id])
+  pathProject    pathProjects @relation(fields: [pathProjectId], references: [id])
+
+  @@id([roleId, pathProjectId])
+}
+
+model staffClinic {
   staffId   String   @db.Uuid
-  roleId    String   @db.Uuid
   clinicId  String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+  clinic    clinics  @relation(fields: [clinicId], references: [id])
+  staff     staffs   @relation(fields: [staffId], references: [id])
 
-  @@id([staffId, roleId, clinicId])
+  @@id([staffId, clinicId])
 }
 
 model userClinic {
@@ -149,17 +169,18 @@ model userClinic {
 }
 
 model clinics {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name      String
-  shortName String
-  address   String?
-  hotline   String?
-  city      String?
-  latitude  Float?
-  longitude Float?
-  avatar    String?
-  active    active   @default(ACTIVE)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  shortName   String
+  address     String?
+  hotline     String?
+  city        String?
+  latitude    Float?
+  longitude   Float?
+  avatar      String?
+  active      active        @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  staffClinic staffClinic[]
 }
 
 model functionLogs {

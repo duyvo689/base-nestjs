@@ -25,7 +25,6 @@ export class AuthService {
         OR: [{ phone: phone }, { phone2: phone }],
       },
     });
-
     if(!staff) {
       throw new NotFoundException(`Không tìm thấy tài khoản ${phone}`)
     }
