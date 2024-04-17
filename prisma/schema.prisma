@@ -84,7 +84,7 @@ model ranks {
 
 model staffs {
   id             String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId       String  @unique
+  customId       String?  @unique
   email          String? @unique
   name           String
   phone          String? @unique
