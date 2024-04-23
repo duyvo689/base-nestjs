@@ -73,48 +73,49 @@ model ranks {
   id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   createdAt     DateTime @default(now()) @db.Timestamptz(6)
   active        active   @default(ACTIVE)
-  convertPoints Int?
+  expenseAmount Int
+  convertPoints Int
   description   String?
-  maxPoints     Int?
-  minPoints     Int?
-  name          String?
-  hexColor      String
+  maxPoints     Int
+  minPoints     Int
+  name          String
+  hexColor      String?
   users         users[]
 }
 
 model staffs {
-  id             String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId       String? @unique
-  email          String? @unique
+  id             String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId       String?       @unique
+  email          String?       @unique
   name           String
-  phone          String? @unique
-  phone2         String? @unique
+  phone          String?       @unique
+  phone2         String?       @unique
   avatar         String?
-  roleId         String? @db.Uuid
+  roleId         String?       @db.Uuid
   hashedPassword String?
-
-  active      active        @default(PENDING)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
-  bookings    bookings[]
-  role        roles?        @relation(fields: [roleId], references: [id])
-  staffClinic staffClinic[]
+  birthday       DateTime?
+  active         active        @default(PENDING)
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  bookings       bookings[]
+  role           roles?        @relation(fields: [roleId], references: [id])
+  staffClinices  staffClinic[]
 }
 
 model permissions {
-  id             String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  shortName      String
-  displayName    String
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  rolePermission rolePermission[]
+  id              String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  shortName       String           @unique
+  displayName     String
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermissions rolePermission[]
 }
 
 model pathProjects {
-  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  pageName        String
-  path            String
-  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  rolePermission  rolePermission[]
-  rolePathProject rolePathProject[]
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pageName         String
+  path             String
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  rolePermissions  rolePermission[]
+  rolePathProjects rolePathProject[]
 }
 
 model roles {
@@ -145,7 +146,7 @@ model rolePathProject {
   pathProjectId String       @db.Uuid
   createdAt     DateTime     @default(now()) @db.Timestamptz(6)
   role          roles        @relation(fields: [roleId], references: [id])
-  pathProject    pathProjects @relation(fields: [pathProjectId], references: [id])
+  pathProject   pathProjects @relation(fields: [pathProjectId], references: [id])
 
   @@id([roleId, pathProjectId])
 }
@@ -181,6 +182,20 @@ model clinics {
   active      active        @default(ACTIVE)
   createdAt   DateTime      @default(now()) @db.Timestamptz(6)
   staffClinic staffClinic[]
+}
+
+model advertises {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  active      active        @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+}
+
+model marketingTeams {
+  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  active      active        @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
 }
 
 model functionLogs {
