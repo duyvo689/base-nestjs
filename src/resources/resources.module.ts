@@ -8,8 +8,11 @@ import { BlobAzureModule } from './blob-azure/blob-azure.module';
 import { AdsModule } from './ads/ads.module';
 import { MarketingTeamModule } from './marketing-team/marketing-team.module';
 import { RankModule } from './rank/rank.module';
+import { OrderModule } from './order/order.module';
+import { ServiceModule } from './service/service.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
-  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule],
+  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule, OrderModule, ServiceModule, CouponModule],
 })
 export class ResourcesModule {}

@@ -35,6 +35,37 @@ enum bookingStatus {
   LEFT
 }
 
+enum categoryTag {
+  BEAUTY
+  DENTAL
+  CADEMY
+  GIFT
+  OTHER
+}
+
+enum serviceTag {
+  SERVICE
+  PRODUCT
+  GIFT
+}
+
+enum lockStatus {
+  LOCK
+  ONGOING
+}
+
+enum orderActiveStatus {
+  CANCEL
+  DONE
+  PROCESSING
+}
+
+enum orderPaymentStatus {
+  PAID
+  UNPAID
+  PARTIAL
+}
+
 model users {
   id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   customId  String   @unique
@@ -170,32 +201,33 @@ model userClinic {
 }
 
 model clinics {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name        String
-  shortName   String
-  address     String?
-  hotline     String?
-  city        String?
-  latitude    Float?
-  longitude   Float?
-  avatar      String?
-  active      active        @default(ACTIVE)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
-  staffClinic staffClinic[]
+  id                   String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String
+  shortName            String
+  address              String?
+  hotline              String?
+  city                 String?
+  latitude             Float?
+  longitude            Float?
+  avatar               String?
+  active               active                @default(ACTIVE)
+  createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+  staffClinic          staffClinic[]
+  couponApplyAtClinics couponApplyAtClinic[]
 }
 
 model advertises {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name        String
-  active      active        @default(ACTIVE)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  active    active   @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model marketingTeams {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name        String
-  active      active        @default(ACTIVE)
-  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  active    active   @default(ACTIVE)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model functionLogs {
@@ -210,29 +242,40 @@ model functionLogs {
 }
 
 model orders {
-  id String @id @unique
-
-  creatorId String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  id           String            @id @unique
+  userId       String            @db.Uuid
+  clinicId     String            @db.Uuid
+  recordDate   DateTime          @default(now()) @db.Timestamptz(6)
+  lockStatus   lockStatus        @default(ONGOING)
+  activeStatus orderActiveStatus @default(PROCESSING)
+  creatorId    String            @db.Uuid
+  createdAt    DateTime          @default(now()) @db.Timestamptz(6)
 }
 
 model orderItems {
-  id           String   @id @unique
-  orderId      String
-  name         String
-  price        Int
-  discount     Int
-  quantity     Int
-  customerPaid Int
-  creatorId    String   @db.Uuid
-  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  id                   String   @id @unique
+  orderId              String
+  nameService          String
+  serviceId            String?  @db.Uuid
+  isCombo              Boolean  @default(false)
+  price                Int      @default(0)
+  discount             Int      @default(0)
+  quantity             Int      @default(1)
+  customerPaid         Int      @default(0)
+  orderComboId         String?
+  onlineConsultantId1  String?  @db.Uuid
+  onlineConsultantId2  String?  @db.Uuid
+  offlineConsultantId1 String?  @db.Uuid
+  offlineConsultantId2 String?  @db.Uuid
+  creatorId            String   @db.Uuid
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
 }
 
-model orderServices {
+model orderCombo {
   id          String   @id @unique
-  orderItemId String
   serviceId   String
-  serviceName String
+  nameService String
+  quantity    Int      @default(1)
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
 }
 
@@ -244,10 +287,10 @@ model bookings {
   dateFrom        DateTime
   dateTo          DateTime
   creatorId       String            @db.Uuid
+  onlineConsultantId  String?  @db.Uuid
   notes           String?
   checkinTime     DateTime?
   leftTime        DateTime?
-  treatmentTime   DateTime?
   bookingStatus   bookingStatus     @default(NO_SHOW)
   isCancel        Boolean           @default(false)
   leftReasonId    String?           @db.Uuid
@@ -262,8 +305,7 @@ model bookings {
 
 model bookingServices {
   bookingId   String
-  serviceId   String
-  serviceName String
+  serviceId   String    @db.Uuid
   booking     bookings? @relation(fields: [bookingId], references: [id])
   service     services? @relation(fields: [serviceId], references: [id])
 
@@ -290,17 +332,51 @@ model leftReason {
   bookings    bookings[]
 }
 
+model categories {
+  id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String
+  description String?
+  active      active      @default(ACTIVE)
+  categoryTag categoryTag
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  services    services[]
+}
+
 model services {
-  id              String            @id @unique
-  name            String
-  frPrice         Int
-  toPrice         Int
-  unit            String
-  description     String?
-  categoryId      String            @db.Uuid
-  creatorId       String            @db.Uuid
-  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  bookingServices bookingServices[]
+  id                  String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                String
+  customId            String?
+  frPrice             Int
+  toPrice             Int
+  unit                String
+  discountCash        Int                   @default(0)
+  discountPercent     Int                   @default(0)
+  description         String?
+  serviceTag          serviceTag
+  active              active                @default(ACTIVE)
+  categoryId          String                @db.Uuid
+  createdAt           DateTime              @default(now()) @db.Timestamptz(6)
+  bookingServices     bookingServices[]
+  category            categories            @relation(fields: [categoryId], references: [id])
+  couponApplyServices couponApplyServices[]
+  serviceGifts        serviceGifts[]
+}
+
+model serviceGifts {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId  String
+  quantity  Int      @default(1)
+  serviceId String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  services  services @relation(fields: [serviceId], references: [id])
+}
+
+model giftApplyClinics {
+  serviceGiftId String   @db.Uuid
+  serviceId     String   @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([serviceGiftId, serviceId])
 }
 
 model combo {
@@ -311,11 +387,38 @@ model combo {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
 
-model categories {
-  id          String   @id @unique
-  name        String
-  description String?
-  categoryId  String   @db.Uuid
-  creatorId   String   @db.Uuid
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+model coupons {
+  id                   String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String
+  code                 String
+  fromDate             DateTime
+  toDate               DateTime
+  issueQuantity        Int
+  numberOfUses         Int
+  active               active                @default(ACTIVE)
+  createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+  couponApplyAtClinics couponApplyAtClinic[]
+  couponApplyServices  couponApplyServices[]
+}
+
+model couponApplyAtClinic {
+  couponId  String   @db.Uuid
+  clinicId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  coupon    coupons  @relation(fields: [couponId], references: [id])
+  clinic    clinics  @relation(fields: [clinicId], references: [id])
+
+  @@id([couponId, clinicId])
+}
+
+model couponApplyServices {
+  couponId  String   @db.Uuid
+  serviceId String   @db.Uuid
+  cash      Int      @default(0)
+  percent   Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  coupon    coupons  @relation(fields: [couponId], references: [id])
+  clinic    services @relation(fields: [serviceId], references: [id])
+
+  @@id([couponId, serviceId])
 }
