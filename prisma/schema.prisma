@@ -284,8 +284,7 @@ model bookings {
   userId          String            @db.Uuid
   doctorId        String            @db.Uuid
   technicianId    String            @db.Uuid
-  dateFrom        DateTime
-  dateTo          DateTime
+  appointmentDate DateTime @db.Date
   creatorId       String            @db.Uuid
   onlineConsultantId  String?  @db.Uuid
   notes           String?
