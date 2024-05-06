@@ -67,37 +67,24 @@ enum orderPaymentStatus {
 }
 
 model users {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId  String   @unique
-  email     String?  @unique
-  name      String
-  nickname  String?
-  phone     String?  @unique
-  phone2    String?
-  avatar    String?
-  rankId    String   @db.Uuid
-  creatorId String?  @db.Uuid
-  active    active   @default(ACTIVE)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-  rank ranks @relation(fields: [rankId], references: [id])
-}
-
-model userAttributes {
-  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name      String   @db.Uuid
-  display   String
-  type      String
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-}
-
-model userValues {
-  userId          String   @db.Uuid
-  userAttributeId String   @db.Uuid
-  value           String
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-
-  @@id([userId, userAttributeId])
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId           String   @unique
+  email              String?  @unique
+  name               String
+  phone              String?  @unique
+  phone2             String?
+  avatar             String?
+  rankId             String   @db.Uuid
+  creatorId          String?  @db.Uuid
+  active             active   @default(ACTIVE)
+  zaloId             String?
+  address            String?
+  points             Int      @default(0)
+  clinicId           String?  @db.Uuid
+  city               String?
+  onlineConsultantId String?  @db.Uuid
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
+  rank               ranks    @relation(fields: [rankId], references: [id])
 }
 
 model ranks {
@@ -283,8 +270,8 @@ model orderCombo {
 model bookings {
   id                 String            @id @unique
   userId             String            @db.Uuid
-  doctorId           String            @db.Uuid
-  technicianId       String            @db.Uuid
+  doctorId           String?           @db.Uuid
+  technicianId       String?           @db.Uuid
   appointmentDate    DateTime          @db.Date
   creatorId          String            @db.Uuid
   onlineConsultantId String?           @db.Uuid

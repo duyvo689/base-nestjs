@@ -24,9 +24,9 @@ export class CreateRankDto {
   // optional
   @IsString()
   @IsOptional()
-  description: string;
+  description?: string;
 
   @IsString()
   @IsOptional()
-  hexColor: string;
+  hexColor?: string;
 }
