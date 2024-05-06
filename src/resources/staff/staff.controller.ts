@@ -23,6 +23,7 @@ export class StaffController {
   @UseGuards(AuthGuard)
   @Get('/my-profile')
   getProfileStaffById(@GetStaff('sub') staffId: string) {
+    console.log("🚀 ~ StaffController ~ getProfileStaffById ~ staffId:", staffId)
     return this.staffService.getProfileStaffById(staffId);
   }
 

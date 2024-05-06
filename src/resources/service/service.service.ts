@@ -7,8 +7,21 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ServiceService {
   constructor(private prismaService: PrismaService) {}
 
-  create(createServiceDto: CreateServiceDto) {
-    return 'This action adds a new service';
+  async create(createServiceDto: CreateServiceDto) {
+    const {clinicIds,...data}=createServiceDto
+    const service = await this.prismaService.services.create({
+      data: data,
+    });
+
+    if (clinicIds && clinicIds.length > 0) {
+      await this.prismaService.serviceApplyClinic.createMany({
+        data: clinicIds.map((item) => ({
+          serviceId: service.id,
+          clinicId: item,
+        })),
+      });
+    }
+    return service;
   }
 
   async findAll() {
@@ -25,24 +38,24 @@ export class ServiceService {
     const categoryTags = tags.map((tag) => tag.categoryTag);
 
     const categories = await this.prismaService.categories.findMany({
-      where:{
-        active: 'ACTIVE'
+      where: {
+        active: 'ACTIVE',
       },
-      orderBy:{
-        name: 'asc'
-      }
-    })
+      orderBy: {
+        name: 'asc',
+      },
+    });
     const services = await this.prismaService.services.findMany({
-      where:{
-        active: 'ACTIVE'
+      where: {
+        active: 'ACTIVE',
       },
-      include:{
-        category:true
+      include: {
+        category: true,
       },
-      orderBy:{
+      orderBy: {
         categoryId: 'asc',
-      }
-    })
+      },
+    });
 
     return {
       categoryTags,
@@ -51,12 +64,39 @@ export class ServiceService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} service`;
-  }
+  async findServiceByStaffClinic(staffId: string) {
+    const resClinicIds = await this.prismaService.staffClinic.findMany({
+      where: {
+        staffId: staffId,
+      },
+      select: {
+        clinicId: true,
+      },
+    });
 
-  update(id: number, updateServiceDto: UpdateServiceDto) {
-    return `This action updates a #${id} service`;
+    let services = [];
+    if (resClinicIds && resClinicIds.length > 0) {
+      const clinicIds = resClinicIds.map((item) => item.clinicId);
+      services = await this.prismaService.services.findMany({
+        where: {
+          active: 'ACTIVE',
+          serviceApplyClinic: {
+            some: {
+              clinicId: {
+                in: clinicIds,
+              },
+            },
+          },
+        },
+        include: {
+          category: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      });
+    }
+    return services
   }
 
   remove(id: number) {

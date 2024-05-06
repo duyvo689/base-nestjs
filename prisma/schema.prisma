@@ -214,6 +214,7 @@ model clinics {
   createdAt            DateTime              @default(now()) @db.Timestamptz(6)
   staffClinic          staffClinic[]
   couponApplyAtClinics couponApplyAtClinic[]
+  serviceApplyClinic   serviceApplyClinic[]
 }
 
 model advertises {
@@ -280,33 +281,33 @@ model orderCombo {
 }
 
 model bookings {
-  id              String            @id @unique
-  userId          String            @db.Uuid
-  doctorId        String            @db.Uuid
-  technicianId    String            @db.Uuid
-  appointmentDate DateTime @db.Date
-  creatorId       String            @db.Uuid
-  onlineConsultantId  String?  @db.Uuid
-  notes           String?
-  checkinTime     DateTime?
-  leftTime        DateTime?
-  bookingStatus   bookingStatus     @default(NO_SHOW)
-  isCancel        Boolean           @default(false)
-  leftReasonId    String?           @db.Uuid
-  leftNotes       String?
-  cancelReasonId  String?           @db.Uuid
-  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
-  staff           staffs?           @relation(fields: [creatorId], references: [id])
-  cancelReason    cancelReason?     @relation(fields: [cancelReasonId], references: [id])
-  bookingServices bookingServices[]
+  id                 String            @id @unique
+  userId             String            @db.Uuid
+  doctorId           String            @db.Uuid
+  technicianId       String            @db.Uuid
+  appointmentDate    DateTime          @db.Date
+  creatorId          String            @db.Uuid
+  onlineConsultantId String?           @db.Uuid
+  notes              String?
+  checkinTime        DateTime?
+  leftTime           DateTime?
+  bookingStatus      bookingStatus     @default(NO_SHOW)
+  isCancel           Boolean           @default(false)
+  leftReasonId       String?           @db.Uuid
+  leftNotes          String?
+  cancelReasonId     String?           @db.Uuid
+  createdAt          DateTime          @default(now()) @db.Timestamptz(6)
+  leftReason         leftReason?       @relation(fields: [leftReasonId], references: [id])
+  staff              staffs?           @relation(fields: [creatorId], references: [id])
+  cancelReason       cancelReason?     @relation(fields: [cancelReasonId], references: [id])
+  bookingServices    bookingServices[]
 }
 
 model bookingServices {
-  bookingId   String
-  serviceId   String    @db.Uuid
-  booking     bookings? @relation(fields: [bookingId], references: [id])
-  service     services? @relation(fields: [serviceId], references: [id])
+  bookingId String
+  serviceId String    @db.Uuid
+  booking   bookings? @relation(fields: [bookingId], references: [id])
+  service   services? @relation(fields: [serviceId], references: [id])
 
   @@id([bookingId, serviceId])
 }
@@ -345,11 +346,9 @@ model services {
   id                  String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                String
   customId            String?
-  frPrice             Int
-  toPrice             Int
+  priceFrom           Int
+  priceTo             Int
   unit                String
-  discountCash        Int                   @default(0)
-  discountPercent     Int                   @default(0)
   description         String?
   serviceTag          serviceTag
   active              active                @default(ACTIVE)
@@ -359,6 +358,7 @@ model services {
   category            categories            @relation(fields: [categoryId], references: [id])
   couponApplyServices couponApplyServices[]
   serviceGifts        serviceGifts[]
+  serviceApplyClinic  serviceApplyClinic[]
 }
 
 model serviceGifts {
@@ -368,6 +368,16 @@ model serviceGifts {
   serviceId String   @db.Uuid
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   services  services @relation(fields: [serviceId], references: [id])
+}
+
+model serviceApplyClinic {
+  serviceId String   @db.Uuid
+  clinicId  String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  service   services @relation(fields: [serviceId], references: [id])
+  clinic    clinics  @relation(fields: [clinicId], references: [id])
+
+  @@id([serviceId, clinicId])
 }
 
 model giftApplyClinics {
@@ -417,7 +427,7 @@ model couponApplyServices {
   percent   Int      @default(0)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   coupon    coupons  @relation(fields: [couponId], references: [id])
-  clinic    services @relation(fields: [serviceId], references: [id])
+  service   services @relation(fields: [serviceId], references: [id])
 
   @@id([couponId, serviceId])
 }

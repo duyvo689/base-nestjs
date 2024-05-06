@@ -11,6 +11,7 @@ import {
 import { ServiceService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { GetStaff } from 'src/configs/decorators';
 
 @Controller('service')
 export class ServiceController {
@@ -26,14 +27,9 @@ export class ServiceController {
     return this.serviceService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.serviceService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
-    return this.serviceService.update(+id, updateServiceDto);
+  @Get('staff-clinic')
+  findServiceByStaffClinic(@GetStaff('sub') staffId:string) {
+    return this.serviceService.findServiceByStaffClinic(staffId);
   }
 
   @Delete(':id')
