@@ -5,6 +5,10 @@ export class CreateBookingDto {
   @IsNotEmpty()
   userId: string;
 
+  @IsString()
+  @IsNotEmpty()
+  clinicId: string;
+
 
   @IsString()
   @IsNotEmpty()

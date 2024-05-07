@@ -85,6 +85,9 @@ model users {
   onlineConsultantId String?  @db.Uuid
   createdAt          DateTime @default(now()) @db.Timestamptz(6)
   rank               ranks    @relation(fields: [rankId], references: [id])
+  clinic             clinics? @relation(fields: [clinicId], references: [id])
+  creator            staffs?  @relation(fields: [creatorId], references: [id], name: "creatorUsers")
+  onlineConsultant   staffs?  @relation(fields: [onlineConsultantId], references: [id], name: "onlineConsultantUsers")
 }
 
 model ranks {
@@ -102,21 +105,23 @@ model ranks {
 }
 
 model staffs {
-  id             String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId       String?       @unique
-  email          String?       @unique
-  name           String
-  phone          String?       @unique
-  phone2         String?       @unique
-  avatar         String?
-  roleId         String?       @db.Uuid
-  hashedPassword String?
-  birthday       DateTime?
-  active         active        @default(PENDING)
-  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
-  bookings       bookings[]
-  role           roles?        @relation(fields: [roleId], references: [id])
-  staffClinices  staffClinic[]
+  id                    String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId              String?       @unique
+  email                 String?       @unique
+  name                  String
+  phone                 String?       @unique
+  phone2                String?       @unique
+  avatar                String?
+  roleId                String?       @db.Uuid
+  hashedPassword        String?
+  birthday              DateTime?
+  active                active        @default(PENDING)
+  createdAt             DateTime      @default(now()) @db.Timestamptz(6)
+  bookings              bookings[]
+  role                  roles?        @relation(fields: [roleId], references: [id])
+  staffClinices         staffClinic[]
+  creatorUsers          users[]       @relation(name: "creatorUsers")
+  onlineConsultantUsers users[]       @relation(name: "onlineConsultantUsers")
 }
 
 model permissions {
@@ -202,6 +207,7 @@ model clinics {
   staffClinic          staffClinic[]
   couponApplyAtClinics couponApplyAtClinic[]
   serviceApplyClinic   serviceApplyClinic[]
+  users                users[]
 }
 
 model advertises {
@@ -272,6 +278,7 @@ model bookings {
   userId             String            @db.Uuid
   doctorId           String?           @db.Uuid
   technicianId       String?           @db.Uuid
+  clinicId           String            @db.Uuid
   appointmentDate    DateTime          @db.Date
   creatorId          String            @db.Uuid
   onlineConsultantId String?           @db.Uuid

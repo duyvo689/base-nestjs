@@ -45,7 +45,6 @@ export class StaffService {
           clinic: true,
         },
       });
-
       const notEnterPathProjects =
         await this.prismaService.rolePathProject.findMany({
           where: {
@@ -58,6 +57,7 @@ export class StaffService {
 
       staff.permissions = permissions.map((p) => p.permission.shortName);
       staff.clinics = clinics.map((p) => p.clinic);
+      staff.clinicIds = clinics.map((p) => p.clinic.id);
       staff.notEnterPathProjects = notEnterPathProjects.map(
         (p) => p.pathProject.path,
       );
@@ -152,6 +152,53 @@ export class StaffService {
       await this.prismaService.$transaction(transactionFn);
       return `deleted staff success ${id}`;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  //Lấy nhân viên chức vụ
+  async findStaffRoleByClinic(
+    clinicIds: string[],
+    roleName: 'doctor' | 'technician' | 'telesale' | 'receptionist',
+  ) {
+    try {
+      const role = await this.prismaService.roles.findFirst({
+        where: {
+          shortName: roleName,
+          active: 'ACTIVE',
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!role) {
+        throw new NotFoundException(`Không tìm thấy chức vụ ${roleName}`);
+      }
+
+      const filters = {
+        ...(clinicIds.length > 0 && {
+          staffClinices: {
+            some: {
+              clinicId: { in: clinicIds },
+            },
+          },
+        }),
+        ...{ roleId: role.id },
+      };
+      const staffs = await this.prismaService.staffs.findMany({
+        where: filters,
+        orderBy: {
+          name: 'asc',
+        },
+      });
+
+      return staffs;
+    } catch (error) {
+      console.log(
+        '🚀 ~ StaffService ~ findStaffRoleDoctorByClinic ~ error:',
+        error,
+      );
       throw error;
     }
   }

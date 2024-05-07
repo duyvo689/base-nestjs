@@ -23,7 +23,6 @@ export class StaffController {
   @UseGuards(AuthGuard)
   @Get('/my-profile')
   getProfileStaffById(@GetStaff('sub') staffId: string) {
-    console.log("🚀 ~ StaffController ~ getProfileStaffById ~ staffId:", staffId)
     return this.staffService.getProfileStaffById(staffId);
   }
 
@@ -47,6 +46,14 @@ export class StaffController {
       }),
     };
     return this.staffService.findAll(filters);
+  }
+
+  @Get('role-by-clinic')
+  findStaffRoleByClinic(
+    @Query('clinicIds') clinicIds: string[],
+    @Query('roleName') roleName: 'doctor' | 'technician' | 'telesale' | 'receptionist',
+  ) {
+    return this.staffService.findStaffRoleByClinic(clinicIds,roleName);
   }
 
   @Post()

@@ -42,6 +42,80 @@ export class UserService {
             minPoints: 99,
           });
         }
+
+        let findOldUser = [];
+
+        if (createUserMaybeBookingDto.user?.phone) {
+          const findOldUserByPhone = await prisma.users.findMany({
+            where: {
+              OR: [
+                {
+                  phone: createUserMaybeBookingDto.user?.phone,
+                },
+                {
+                  phone2: createUserMaybeBookingDto.user?.phone,
+                },
+              ],
+            },
+            select: {
+              name: true,
+              phone: true,
+              phone2: true,
+              customId: true,
+              avatar: true,
+            },
+          });
+
+          if (findOldUserByPhone && findOldUserByPhone.length > 0) {
+            findOldUser = [...findOldUser, ...findOldUserByPhone];
+          }
+        }
+        if (createUserMaybeBookingDto.user?.phone2) {
+          const findOldUserByPhone2 = await prisma.users.findMany({
+            where: {
+              OR: [
+                {
+                  phone: createUserMaybeBookingDto.user?.phone2,
+                },
+                {
+                  phone2: createUserMaybeBookingDto.user?.phone2,
+                },
+              ],
+            },
+            select: {
+              name: true,
+              phone: true,
+              phone2: true,
+              customId: true,
+              avatar: true,
+            },
+          });
+          if (findOldUserByPhone2 && findOldUserByPhone2.length > 0) {
+            findOldUser = [...findOldUser, ...findOldUserByPhone2];
+          }
+        }
+
+        if (createUserMaybeBookingDto.user?.email) {
+          const findOldUserByEmail = await prisma.users.findUnique({
+            where: {
+              email: createUserMaybeBookingDto.user?.email,
+            },
+            select: {
+              name: true,
+              phone: true,
+              phone2: true,
+              customId: true,
+              avatar: true,
+            },
+          });
+          if (findOldUserByEmail) {
+            findOldUser.push(findOldUserByEmail);
+          }
+        }
+
+        if (findOldUser.length > 0) {
+          return findOldUser;
+        }
         const user = await prisma.users.create({
           data: {
             ...createUserMaybeBookingDto.user,
@@ -59,27 +133,35 @@ export class UserService {
             ...createUserMaybeBookingDto?.booking,
             userCustomId: user.customId,
             creatorId: staffId,
-            userId:user.id
+            userId: user.id,
           });
         }
         return user;
       };
       const user = await this.prismaService.$transaction(transactionFn);
-      console.log('🚀 ~ UserService ~ user:', user);
 
       return user;
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ConflictException(`Đã tồn tại ${error.meta.target}`);
       }
-      throw new error();
+      throw error;
     }
   }
 
-  async findAll() {
+  async findAll(filters: any, skip: number, take: number) {
     const users = await this.prismaService.users.findMany({
+      where: filters,
       orderBy: {
         createdAt: 'desc',
+      },
+      skip: skip,
+      take: take,
+      include: {
+        rank: true,
+        clinic: true,
+        creator: true,
+        onlineConsultant: true,
       },
     });
     return users;
