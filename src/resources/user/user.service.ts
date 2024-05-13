@@ -5,7 +5,7 @@ import { CreateUserMaybeBookingDto } from './dto/create-user-maybe-booking.dto';
 import * as dayjs from 'dayjs';
 import { RankService } from '../rank/rank.service';
 import { PrismaClient } from '@prisma/client';
-import { ACADEMY_ID, DENTAL_ID } from 'src/constant';
+import { getPrefixId, nanoid } from 'src/utils';
 
 @Injectable()
 export class UserService {
@@ -21,7 +21,7 @@ export class UserService {
   ) {
     try {
       const transactionFn = async (prisma: PrismaClient) => {
-        const customId = await this.createUserCustomId(
+        const customId = this.createUserCustomId(
           createUserMaybeBookingDto.user?.clinicId,
         );
         const rank = await prisma.ranks.findFirst({
@@ -134,7 +134,7 @@ export class UserService {
             userCustomId: user.customId,
             creatorId: staffId,
             userId: user.id,
-          });
+          },staffId);
         }
         return user;
       };
@@ -161,9 +161,10 @@ export class UserService {
         rank: true,
         clinic: true,
         creator: true,
-        onlineConsultant: true,
+        sellerOnline: true,
       },
     });
+    console.log("🚀 ~ UserService ~ findAll ~ users:", users)
     return users;
   }
 
@@ -171,31 +172,10 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
-  async createUserCustomId(clinicId?: string) {
-    let count = dayjs().format('mmss');
-
-    const countUser: any = await this.prismaService.$queryRaw`
-    SELECT COUNT(*)
-    FROM users
-    WHERE DATE_TRUNC('day', "users"."createdAt") = DATE_TRUNC('day', CURRENT_TIMESTAMP);
-`;
-    if (countUser && countUser.length > 0) {
-      count = countUser[0].count;
-      if (countUser[0].count < 10) {
-        count = `00${count}`;
-      } else if (9 < countUser[0].count && countUser[0].count < 100) {
-        count = `0${count}`;
-      }
-    }
+  createUserCustomId(clinicId?: string) {
+    const number = nanoid();
     const date = dayjs().format('DDMMYY');
-    let f = 'KH';
-    if (DENTAL_ID == clinicId) {
-      f = 'NK';
-    } else if (ACADEMY_ID == clinicId) {
-      f = 'DT';
-    } else if (clinicId) {
-      f = 'TM';
-    }
-    return `${f}${date}-${count}`;
+    const f = getPrefixId(clinicId);
+    return `${f}${date}-${number}`;
   }
 }

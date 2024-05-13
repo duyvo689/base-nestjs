@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StaffService } from 'src/resources/staff/staff.service';
 import * as argon from 'argon2';
-import { createCustomId } from 'src/utils/custom-id';
+import { getPrefixId } from 'src/utils/custom-id';
 
 @Injectable()
 export class AuthService {

@@ -66,28 +66,33 @@ enum orderPaymentStatus {
   PARTIAL
 }
 
+enum bookingType {
+  TREATMENT
+  ADVICE
+}
+
 model users {
-  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId           String   @unique
-  email              String?  @unique
-  name               String
-  phone              String?  @unique
-  phone2             String?
-  avatar             String?
-  rankId             String   @db.Uuid
-  creatorId          String?  @db.Uuid
-  active             active   @default(ACTIVE)
-  zaloId             String?
-  address            String?
-  points             Int      @default(0)
-  clinicId           String?  @db.Uuid
-  city               String?
-  onlineConsultantId String?  @db.Uuid
-  createdAt          DateTime @default(now()) @db.Timestamptz(6)
-  rank               ranks    @relation(fields: [rankId], references: [id])
-  clinic             clinics? @relation(fields: [clinicId], references: [id])
-  creator            staffs?  @relation(fields: [creatorId], references: [id], name: "creatorUsers")
-  onlineConsultant   staffs?  @relation(fields: [onlineConsultantId], references: [id], name: "onlineConsultantUsers")
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId       String   @unique
+  email          String?  @unique
+  name           String
+  phone          String?  @unique
+  phone2         String?
+  avatar         String?
+  rankId         String   @db.Uuid
+  creatorId      String?  @db.Uuid
+  active         active   @default(ACTIVE)
+  zaloId         String?
+  address        String?
+  points         Int      @default(0)
+  clinicId       String?  @db.Uuid
+  city           String?
+  sellerOnlineId String?  @db.Uuid
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  rank           ranks    @relation(fields: [rankId], references: [id])
+  clinic         clinics? @relation(fields: [clinicId], references: [id])
+  creator        staffs?  @relation(fields: [creatorId], references: [id], name: "creatorUsers")
+  sellerOnline   staffs?  @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineUsers")
 }
 
 model ranks {
@@ -105,23 +110,33 @@ model ranks {
 }
 
 model staffs {
-  id                    String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId              String?       @unique
-  email                 String?       @unique
-  name                  String
-  phone                 String?       @unique
-  phone2                String?       @unique
-  avatar                String?
-  roleId                String?       @db.Uuid
-  hashedPassword        String?
-  birthday              DateTime?
-  active                active        @default(PENDING)
-  createdAt             DateTime      @default(now()) @db.Timestamptz(6)
-  bookings              bookings[]
-  role                  roles?        @relation(fields: [roleId], references: [id])
-  staffClinices         staffClinic[]
-  creatorUsers          users[]       @relation(name: "creatorUsers")
-  onlineConsultantUsers users[]       @relation(name: "onlineConsultantUsers")
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId       String?   @unique
+  email          String?   @unique
+  name           String
+  phone          String?   @unique
+  phone2         String?   @unique
+  avatar         String?
+  roleId         String?   @db.Uuid
+  hashedPassword String?
+  birthday       DateTime?
+  active         active    @default(PENDING)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+
+  role                   roles?        @relation(fields: [roleId], references: [id])
+  staffClinices          staffClinic[]
+  creatorUsers           users[]       @relation(name: "creatorUsers")
+  sellerOnlineUsers      users[]       @relation(name: "sellerOnlineUsers")
+  technicianBooking      bookings[]    @relation(name: "technicianBooking")
+  creatorBooking         bookings[]    @relation(name: "creatorBooking")
+  doctorBooking          bookings[]    @relation(name: "doctorBooking")
+  creatorOrderItem       orderItems[]  @relation(name: "creatorOrderItem")
+  sellerOnlineOrderItem  orderItems[]  @relation(name: "sellerOnlineOrderItem")
+  sellerOfflineOrderItem orderItems[]  @relation(name: "sellerOfflineOrderItem")
+  salesSupportOrderItem  orderItems[]  @relation(name: "salesSupportOrderItem")
+  sellerOnlineOrder      orders[]      @relation(name: "sellerOnlineOrder")
+  sellerOfflineOrder     orders[]      @relation(name: "sellerOfflineOrder")
+  creatorOrder           orders[]      @relation(name: "creatorOrder")
 }
 
 model permissions {
@@ -184,14 +199,6 @@ model staffClinic {
   @@id([staffId, clinicId])
 }
 
-model userClinic {
-  userId    String   @db.Uuid
-  clinicId  String   @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-
-  @@id([userId, clinicId])
-}
-
 model clinics {
   id                   String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name                 String
@@ -208,6 +215,7 @@ model clinics {
   couponApplyAtClinics couponApplyAtClinic[]
   serviceApplyClinic   serviceApplyClinic[]
   users                users[]
+  bookings             bookings[]
 }
 
 model advertises {
@@ -236,65 +244,71 @@ model functionLogs {
 }
 
 model orders {
-  id           String            @id @unique
-  userId       String            @db.Uuid
-  clinicId     String            @db.Uuid
-  recordDate   DateTime          @default(now()) @db.Timestamptz(6)
-  lockStatus   lockStatus        @default(ONGOING)
-  activeStatus orderActiveStatus @default(PROCESSING)
-  creatorId    String            @db.Uuid
-  createdAt    DateTime          @default(now()) @db.Timestamptz(6)
+  id              String            @id @unique
+  userId          String            @db.Uuid
+  clinicId        String            @db.Uuid
+  recordDate      DateTime          @default(now()) @db.Timestamptz(6)
+  sellerOnlineId  String?           @db.Uuid
+  sellerOfflineId String?           @db.Uuid
+  lockStatus      lockStatus        @default(ONGOING)
+  activeStatus    orderActiveStatus @default(PROCESSING)
+  creatorId       String            @db.Uuid
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  creator       staffs @relation(fields: [creatorId], references: [id], name: "creatorOrder")
+  sellerOnline  staffs? @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrder")
+  sellerOffline staffs? @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrder")
 }
 
 model orderItems {
-  id                   String   @id @unique
-  orderId              String
-  nameService          String
-  serviceId            String?  @db.Uuid
-  isCombo              Boolean  @default(false)
-  price                Int      @default(0)
-  discount             Int      @default(0)
-  quantity             Int      @default(1)
-  customerPaid         Int      @default(0)
-  orderComboId         String?
-  onlineConsultantId1  String?  @db.Uuid
-  onlineConsultantId2  String?  @db.Uuid
-  offlineConsultantId1 String?  @db.Uuid
-  offlineConsultantId2 String?  @db.Uuid
-  creatorId            String   @db.Uuid
-  createdAt            DateTime @default(now()) @db.Timestamptz(6)
-}
-
-model orderCombo {
-  id          String   @id @unique
-  serviceId   String
-  nameService String
-  quantity    Int      @default(1)
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  id              String      @id @unique
+  orderId         String
+  itemName        String
+  serviceId       String?     @db.Uuid
+  isCombo         Boolean     @default(false)
+  price           Int         @default(0)
+  discount        Int         @default(0)
+  quantity        Int         @default(1)
+  customerPaid    Int         @default(0)
+  sellerOnlineId  String?     @db.Uuid
+  sellerOfflineId String?     @db.Uuid
+  salesSupportId  String?     @db.Uuid
+  creatorId       String      @db.Uuid
+  createdAt       DateTime    @default(now()) @db.Timestamptz(6)
+  service         services?   @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
+  creator         staffs     @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
+  sellerOnline    staffs?     @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
+  sellerOffline   staffs?     @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
+  salesSupport    staffs?     @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
 }
 
 model bookings {
-  id                 String            @id @unique
-  userId             String            @db.Uuid
-  doctorId           String?           @db.Uuid
-  technicianId       String?           @db.Uuid
-  clinicId           String            @db.Uuid
-  appointmentDate    DateTime          @db.Date
-  creatorId          String            @db.Uuid
-  onlineConsultantId String?           @db.Uuid
-  notes              String?
-  checkinTime        DateTime?
-  leftTime           DateTime?
-  bookingStatus      bookingStatus     @default(NO_SHOW)
-  isCancel           Boolean           @default(false)
-  leftReasonId       String?           @db.Uuid
-  leftNotes          String?
-  cancelReasonId     String?           @db.Uuid
-  createdAt          DateTime          @default(now()) @db.Timestamptz(6)
-  leftReason         leftReason?       @relation(fields: [leftReasonId], references: [id])
-  staff              staffs?           @relation(fields: [creatorId], references: [id])
-  cancelReason       cancelReason?     @relation(fields: [cancelReasonId], references: [id])
-  bookingServices    bookingServices[]
+  id              String            @id @unique
+  userId          String            @db.Uuid
+  bookingType     bookingType
+  doctorId        String?           @db.Uuid
+  technicianId    String?           @db.Uuid
+  clinicId        String            @db.Uuid
+  appointmentDate DateTime          @db.Date
+  creatorId       String            @db.Uuid
+  sellerOnlineId  String?           @db.Uuid
+  sellerOfflineId  String?           @db.Uuid
+  salesSupportId  String?           @db.Uuid
+  notes           String?
+  checkinTime     DateTime?
+  leftTime        DateTime?
+  bookingStatus   bookingStatus     @default(NO_SHOW)
+  isCancel        Boolean           @default(false)
+  leftReasonId    String?           @db.Uuid
+  leftNotes       String?
+  cancelReasonId  String?           @db.Uuid
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
+  creator         staffs           @relation(fields: [creatorId], references: [id], name: "creatorBooking")
+  doctor          staffs?           @relation(fields: [doctorId], references: [id], name: "doctorBooking")
+  technician      staffs?           @relation(fields: [technicianId], references: [id], name: "technicianBooking")
+  clinic          clinics?          @relation(fields: [clinicId], references: [id])
+  cancelReason    cancelReason?     @relation(fields: [cancelReasonId], references: [id])
+  bookingServices bookingServices[]
 }
 
 model bookingServices {
@@ -353,6 +367,7 @@ model services {
   couponApplyServices couponApplyServices[]
   serviceGifts        serviceGifts[]
   serviceApplyClinic  serviceApplyClinic[]
+  orderItems          orderItems[]          @relation(name: "serviceOrderItem")
 }
 
 model serviceGifts {
@@ -424,4 +439,12 @@ model couponApplyServices {
   service   services @relation(fields: [serviceId], references: [id])
 
   @@id([couponId, serviceId])
+}
+
+model provinces {
+  id            Int      @id @default(autoincrement())
+  province_code Int
+  province_name String
+  districts     Json
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
 }

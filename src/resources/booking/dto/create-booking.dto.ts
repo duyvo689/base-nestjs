@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsOptional, IsAlpha, IsArray } from 'class-validator';
+import { bookingType } from '@prisma/client';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsAlpha,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
 
 export class CreateBookingDto {
   @IsString()
@@ -9,6 +17,9 @@ export class CreateBookingDto {
   @IsNotEmpty()
   clinicId: string;
 
+  @IsEnum(bookingType)
+  @IsNotEmpty()
+  bookingType: bookingType;
 
   @IsString()
   @IsNotEmpty()
@@ -19,12 +30,8 @@ export class CreateBookingDto {
   appointmentDate: string;
 
   @IsString()
-  @IsNotEmpty()
-  creatorId: string;
-
-  @IsString()
   @IsOptional()
-  onlineConsultantId?: string;
+  sellerOnlineId?: string;
 
   @IsString()
   @IsOptional()

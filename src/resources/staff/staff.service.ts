@@ -161,6 +161,7 @@ export class StaffService {
     clinicIds: string[],
     roleName: 'doctor' | 'technician' | 'telesale' | 'receptionist',
   ) {
+    console.log("🚀 ~ StaffService ~ roleName:", roleName)
     try {
       const role = await this.prismaService.roles.findFirst({
         where: {
