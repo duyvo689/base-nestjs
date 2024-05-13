@@ -120,8 +120,6 @@ export class StaffService {
     return staffs;
   }
 
-  async update(id: string) {}
-
   async delete(id: string) {
     try {
       const staff = await this.prismaService.staffs.findUnique({
@@ -161,7 +159,7 @@ export class StaffService {
     clinicIds: string[],
     roleName: 'doctor' | 'technician' | 'telesale' | 'receptionist',
   ) {
-    console.log("🚀 ~ StaffService ~ roleName:", roleName)
+    console.log('🚀 ~ StaffService ~ roleName:', roleName);
     try {
       const role = await this.prismaService.roles.findFirst({
         where: {
@@ -194,6 +192,33 @@ export class StaffService {
         },
       });
 
+      return staffs;
+    } catch (error) {
+      console.log(
+        '🚀 ~ StaffService ~ findStaffRoleDoctorByClinic ~ error:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async findStaffByClinics(clinicIds: string[]) {
+    try {
+      const filters = {
+        ...(clinicIds.length > 0 && {
+          staffClinices: {
+            some: {
+              clinicId: { in: clinicIds },
+            },
+          },
+        }),
+      };
+      const staffs = await this.prismaService.staffs.findMany({
+        where: filters,
+        orderBy: {
+          name: 'asc',
+        },
+      });
       return staffs;
     } catch (error) {
       console.log(

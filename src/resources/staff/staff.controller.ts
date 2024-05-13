@@ -56,6 +56,13 @@ export class StaffController {
     return this.staffService.findStaffRoleByClinic(clinicIds,roleName);
   }
 
+  @Get('by-clinic')
+  findStaffByClinics(
+    @Query('clinicIds') clinicIds: string[],
+  ) {
+    return this.staffService.findStaffByClinics(clinicIds);
+  }
+
   @Post()
   create(@Body() staff: any) {
     return this.staffService.create(staff);

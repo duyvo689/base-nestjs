@@ -216,6 +216,7 @@ model clinics {
   serviceApplyClinic   serviceApplyClinic[]
   users                users[]
   bookings             bookings[]
+  orders               orders[]
 }
 
 model advertises {
@@ -254,31 +255,35 @@ model orders {
   activeStatus    orderActiveStatus @default(PROCESSING)
   creatorId       String            @db.Uuid
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  creator       staffs @relation(fields: [creatorId], references: [id], name: "creatorOrder")
-  sellerOnline  staffs? @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrder")
-  sellerOffline staffs? @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrder")
+  creator         staffs            @relation(fields: [creatorId], references: [id], name: "creatorOrder")
+  sellerOnline    staffs?           @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrder")
+  sellerOffline   staffs?           @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrder")
+  clinic          clinics           @relation(fields: [clinicId], references: [id])
+  orderItems      orderItems[]
 }
 
 model orderItems {
-  id              String      @id @unique
+  id              String    @id @unique
   orderId         String
   itemName        String
-  serviceId       String?     @db.Uuid
-  isCombo         Boolean     @default(false)
-  price           Int         @default(0)
-  discount        Int         @default(0)
-  quantity        Int         @default(1)
-  customerPaid    Int         @default(0)
-  sellerOnlineId  String?     @db.Uuid
-  sellerOfflineId String?     @db.Uuid
-  salesSupportId  String?     @db.Uuid
-  creatorId       String      @db.Uuid
-  createdAt       DateTime    @default(now()) @db.Timestamptz(6)
-  service         services?   @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
-  creator         staffs     @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
-  sellerOnline    staffs?     @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
-  sellerOffline   staffs?     @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
-  salesSupport    staffs?     @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
+  serviceId       String?   @db.Uuid
+  isCombo         Boolean   @default(false)
+  price           Int       @default(0)
+  discount        Int       @default(0)
+  quantity        Int       @default(1)
+  customerPaid    Int       @default(0)
+  sellerOnlineId  String?   @db.Uuid
+  sellerOfflineId String?   @db.Uuid
+  salesSupportId  String?   @db.Uuid
+  creatorId       String    @db.Uuid
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  notes           String?
+  service         services? @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
+  creator         staffs    @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
+  sellerOnline    staffs?   @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
+  sellerOffline   staffs?   @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
+  salesSupport    staffs?   @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
+  orders          orders    @relation(fields: [orderId], references: [id])
 }
 
 model bookings {
@@ -291,7 +296,7 @@ model bookings {
   appointmentDate DateTime          @db.Date
   creatorId       String            @db.Uuid
   sellerOnlineId  String?           @db.Uuid
-  sellerOfflineId  String?           @db.Uuid
+  sellerOfflineId String?           @db.Uuid
   salesSupportId  String?           @db.Uuid
   notes           String?
   checkinTime     DateTime?
@@ -303,7 +308,7 @@ model bookings {
   cancelReasonId  String?           @db.Uuid
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
-  creator         staffs           @relation(fields: [creatorId], references: [id], name: "creatorBooking")
+  creator         staffs            @relation(fields: [creatorId], references: [id], name: "creatorBooking")
   doctor          staffs?           @relation(fields: [doctorId], references: [id], name: "doctorBooking")
   technician      staffs?           @relation(fields: [technicianId], references: [id], name: "technicianBooking")
   clinic          clinics?          @relation(fields: [clinicId], references: [id])

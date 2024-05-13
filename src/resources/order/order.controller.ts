@@ -11,14 +11,20 @@ import {
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { GetStaff } from 'src/configs/decorators';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  create(@Body() createOrderDto: CreateOrderDto,@GetStaff('sub') staffId:string) {
+    return this.orderService.create(createOrderDto,staffId);
+  }
+
+  @Get('user')
+  findOrderOfUser(@Query('userId') userId: string) {
+    return this.orderService.findOrderOfUser(userId);
   }
 
   @Get('service-user-booked')
