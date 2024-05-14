@@ -13,8 +13,9 @@ import { ServiceModule } from './service/service.module';
 import { CouponModule } from './coupon/coupon.module';
 import { CategoryModule } from './category/category.module';
 import { BookingModule } from './booking/booking.module';
+import { OrderItemModule } from './order-item/order-item.module';
 
 @Module({
-  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule, OrderModule, ServiceModule, CouponModule, CategoryModule, BookingModule],
+  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule, OrderModule, ServiceModule, CouponModule, CategoryModule, BookingModule, OrderItemModule],
 })
 export class ResourcesModule {}

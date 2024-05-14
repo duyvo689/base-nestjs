@@ -17,18 +17,24 @@ import { GetStaff } from 'src/configs/decorators';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post()
-  create(@Body() createOrderDto: CreateOrderDto,@GetStaff('sub') staffId:string) {
-    return this.orderService.create(createOrderDto,staffId);
-  }
+  // @Post()
+  // create(@Body() createOrderDto: CreateOrderDto,@GetStaff('sub') staffId:string) {
+  //   return this.orderService.create(createOrderDto,staffId);
+  // }
 
-  @Get('user')
-  findOrderOfUser(@Query('userId') userId: string) {
-    return this.orderService.findOrderOfUser(userId);
-  }
+  // @Get('user')
+  // findOrderOfUser(@Query('userId') userId: string) {
+  //   return this.orderService.findOrderOfUser(userId);
+  // }
 
-  @Get('service-user-booked')
-  findServiceOfUserBooked(@Query('userId') userId: string) {
-    return this.orderService.findServiceOfUserBooked(userId);
-  }
+  // @Get('service-user-booked')
+  // findServiceOfUserBooked(@Query('userId') userId: string) {
+  //   return this.orderService.findServiceOfUserBooked(userId);
+  // }
+
+  // @Get(':id')
+  // findOrderByOrderId(@Param('id') orderId: string) {
+  //   console.log("🚀 ~ OrderController ~ findOrderByOrderId ~ orderId:", orderId)
+  //   return this.orderService.findOrderByOrderId(orderId);
+  // }
 }
