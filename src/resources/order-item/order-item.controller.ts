@@ -29,4 +29,21 @@ export class OrderItemController {
   findOrderItemByUser(@Query('userId') userId: string) {
     return this.orderItemService.findOrderItemByUser(userId);
   }
+
+  @Delete('cancel/:id')
+  cancelOrderItemById(
+    @Param('id') id: string,
+    @Body() cancelReasonData: any,
+    @GetStaff('sub') staffId: string,
+  ) {
+    return this.orderItemService.cancelOrderItemById(
+      id,
+      cancelReasonData,
+      staffId,
+    );
+  }
+  @Delete('lock/:id')
+  lockOrderItemById(@Param('id') id: string) {
+    return this.orderItemService.lockOrderItemById(id);
+  }
 }

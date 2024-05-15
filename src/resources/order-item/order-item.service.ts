@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -80,6 +80,61 @@ export class OrderItemService {
       },
     });
     return items;
+  }
+
+  async cancelOrderItemById(
+    id: string,
+    cancelReasonData: any,
+    staffId: string,
+  ) {
+    const itemF = await this.prismaService.orderItems.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        isCancel: true,
+      },
+    });
+    if (!itemF) {
+      throw new NotFoundException();
+    }
+
+    const item = await this.prismaService.orderItems.update({
+      data: {
+        isCancel: true,
+      },
+      where: { id: id },
+    });
+
+    const duy = await this.prismaService.cancelReasonOfItem.createMany({
+      data: cancelReasonData.map((item) => ({ ...item, creatorId: staffId })),
+    });
+    return item;
+  }
+
+  async lockOrderItemById(id: string) {
+    const itemF = await this.prismaService.orderItems.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        isLock: true,
+      },
+    });
+    if (!itemF) {
+      throw new NotFoundException();
+    }
+
+    const item = await this.prismaService.orderItems.update({
+      data: {
+        isLock: !itemF.isLock,
+      },
+      where: { id: id },
+    });
+
+    return item;
   }
 
   createOrderItemId(clinicId: string) {

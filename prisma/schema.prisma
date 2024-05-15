@@ -250,6 +250,8 @@ model orderItems {
   serviceId       String?   @db.Uuid
   comboId         String?
   isCombo         Boolean   @default(false)
+  isCancel        Boolean   @default(false)
+  isLock          Boolean   @default(false)
   price           Int       @default(0)
   discount        Int       @default(0)
   quantity        Int       @default(1)
@@ -268,6 +270,15 @@ model orderItems {
   salesSupport    staffs?   @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
   user            users?    @relation(fields: [userId], references: [id], name: "userOrderItems")
   clinic          clinics   @relation(fields: [clinicId], references: [id])
+}
+
+model cancelReasonOfItem {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cancelReasonId String?  @db.Uuid
+  orderItemId    String
+  description    String?
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  creatorId      String?  @db.Uuid
 }
 
 model payOrderItemHistory {
@@ -337,13 +348,11 @@ model bookingServices {
 }
 
 model cancelReason {
-  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name        String
-  description String?
-  active      active     @default(ACTIVE)
-  creatorId   String     @db.Uuid
-  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
-  bookings    bookings[]
+  id        String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  active    active     @default(ACTIVE)
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+  bookings  bookings[]
 }
 
 model leftReason {
