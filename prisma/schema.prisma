@@ -247,8 +247,9 @@ model orderItems {
   orderId         String?
   userId          String    @db.Uuid
   itemName        String
-  serviceId       String    @db.Uuid
+  serviceId       String?   @db.Uuid
   comboId         String?
+  isCombo         Boolean   @default(false)
   price           Int       @default(0)
   discount        Int       @default(0)
   quantity        Int       @default(1)
@@ -256,12 +257,12 @@ model orderItems {
   sellerOnlineId  String?   @db.Uuid
   sellerOfflineId String?   @db.Uuid
   salesSupportId  String?   @db.Uuid
-  creatorId       String    @db.Uuid
+  creatorId       String?   @db.Uuid
   createdAt       DateTime  @default(now()) @db.Timestamptz(6)
   notes           String?
   clinicId        String    @db.Uuid
   service         services? @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
-  creator         staffs    @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
+  creator         staffs?   @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
   sellerOnline    staffs?   @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
   sellerOffline   staffs?   @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
   salesSupport    staffs?   @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
@@ -279,12 +280,20 @@ model payOrderItemHistory {
   createdAt       DateTime @default(now()) @db.Timestamptz(6)
 }
 
+model couponApplyOrderItem {
+  orderItemId String
+  couponId    String   @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([orderItemId, couponId])
+}
+
 model bills {
-  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  orderItemId     String
-  recordingDate   DateTime @default(now()) @db.Timestamptz(6)
-   creatorId       String   @db.Uuid
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderItemId   String
+  recordingDate DateTime @default(now()) @db.Timestamptz(6)
+  creatorId     String   @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model bookings {

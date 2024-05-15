@@ -9,7 +9,19 @@ import * as dayjs from 'dayjs';
 export class OrderItemService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  create(createOrderItemDto: CreateOrderItemDto) {
+  async create(createOrderItemDto: CreateOrderItemDto[], staffId: string) {
+    const items = await this.prismaService.orderItems.createMany({
+      data: createOrderItemDto.map((item) => {
+        const id = this.createOrderItemId(item.clinicId);
+        return {
+          ...item,
+          id: id,
+          customerPaid: 0,
+          creatorId: staffId,
+          orderId: '123',
+        };
+      }),
+    });
     return 'This action adds a new orderItem';
   }
 
@@ -63,92 +75,11 @@ export class OrderItemService {
           },
         },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
     return items;
-  }
-
-  async findOrderGroupByUser(userId: string) {
-    const items = await this.prismaService.orderItems.findMany({
-      where: {
-        userId: userId,
-        orderId: { not: null },
-      },
-      include: {
-        service: {
-          select: {
-            id: true,
-            customId: true,
-            name: true,
-          },
-        },
-        sellerOnline: {
-          select: {
-            id: true,
-            customId: true,
-            name: true,
-          },
-        },
-        sellerOffline: {
-          select: {
-            id: true,
-            customId: true,
-            name: true,
-          },
-        },
-        salesSupport: {
-          select: {
-            id: true,
-            customId: true,
-            name: true,
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            customId: true,
-            name: true,
-          },
-        },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            shortName: true,
-          },
-        },
-      },
-    });
-
-    if (items.length == 0) return [];
-    // const groupedOrders = items.reduce((acc, order) => {
-    //   if (!acc[order.orderId]) {
-    //     acc[order.orderId] = [];
-    //   }
-    //   acc[order.orderId].push(order);
-    //   return acc;
-    // }, {});
-
-    const groupedOrders = items.reduce((acc, order) => {
-      const key = `${order.orderId}-${order.clinicId}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(order);
-      return acc;
-    }, {});
-
-    const result = Object.values(groupedOrders).map(items => ({
-      orderId: items[0].orderId,
-      items: items
-    }));
-
-    const results = await Promise.all(
-      result.map(async (item) => {
-        const priceResult = await this.calculatePriceOrder(item.orderId);
-        return { ...item, billing: priceResult[0] };
-      }),
-    );
-    return results;
   }
 
   createOrderItemId(clinicId: string) {
