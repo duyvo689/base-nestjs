@@ -17,7 +17,7 @@ export class OrderItemService {
     const items = await this.prismaService.orderItems.findMany({
       where: {
         userId: userId,
-        orderId: null,
+        // orderId: null,
       },
       include: {
         service: {

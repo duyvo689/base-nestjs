@@ -14,8 +14,10 @@ import { CouponModule } from './coupon/coupon.module';
 import { CategoryModule } from './category/category.module';
 import { BookingModule } from './booking/booking.module';
 import { OrderItemModule } from './order-item/order-item.module';
+import { PaymentMethodModule } from './payment-method/payment-method.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
-  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule, OrderModule, ServiceModule, CouponModule, CategoryModule, BookingModule, OrderItemModule],
+  imports: [UserModule, StaffModule, LogModule, RoleModule, ClinicModule,BlobAzureModule, AdsModule, MarketingTeamModule, RankModule, OrderModule, ServiceModule, CouponModule, CategoryModule, BookingModule, OrderItemModule, PaymentMethodModule, PaymentModule],
 })
 export class ResourcesModule {}

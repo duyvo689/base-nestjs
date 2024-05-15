@@ -247,7 +247,7 @@ model orderItems {
   orderId         String?
   userId          String    @db.Uuid
   itemName        String
-  serviceId       String   @db.Uuid
+  serviceId       String    @db.Uuid
   comboId         String?
   price           Int       @default(0)
   discount        Int       @default(0)
@@ -267,6 +267,24 @@ model orderItems {
   salesSupport    staffs?   @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
   user            users?    @relation(fields: [userId], references: [id], name: "userOrderItems")
   clinic          clinics   @relation(fields: [clinicId], references: [id])
+}
+
+model payOrderItemHistory {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderItemId     String
+  recordingDate   DateTime @default(now()) @db.Timestamptz(6)
+  revenue         Int
+  paymentMethodId String   @db.Uuid
+  creatorId       String   @db.Uuid
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model bills {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderItemId     String
+  recordingDate   DateTime @default(now()) @db.Timestamptz(6)
+   creatorId       String   @db.Uuid
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
 }
 
 model bookings {
@@ -289,6 +307,7 @@ model bookings {
   leftReasonId    String?           @db.Uuid
   leftNotes       String?
   cancelReasonId  String?           @db.Uuid
+  recordingDate   DateTime          @default(now()) @db.Timestamptz(6)
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
   creator         staffs            @relation(fields: [creatorId], references: [id], name: "creatorBooking")
@@ -435,4 +454,12 @@ model provinces {
   province_name String
   districts     Json
   created_at    DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model paymentMethod {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      String
+  active    active   @default(ACTIVE)
+  sorting   Int?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 }
