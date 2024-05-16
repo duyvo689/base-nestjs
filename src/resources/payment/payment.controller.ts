@@ -31,4 +31,9 @@ export class PaymentController {
   findOrderItemsStillDebt(@Query('userId') userId: string) {
     return this.paymentService.findOrderItemsStillDebt(userId);
   }
+
+  @Delete(':id')
+  deleteBillById(@Param('id') billId: string) {
+    return this.paymentService.deleteBillById(billId);
+  }
 }

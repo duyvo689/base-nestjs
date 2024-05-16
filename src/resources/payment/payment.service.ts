@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PrismaClient } from '@prisma/client';
@@ -39,13 +39,13 @@ export class PaymentService {
           // Thêm promise vào mảng
           updatePromises.push(updatePromise);
         }
-  
+
         // Chờ cho tất cả các promise cập nhật customerPaid hoàn thành
         await Promise.all(updatePromises);
-  
+
         return bill;
       };
-  
+
       const bill = await this.prismaService.$transaction(transactionFn);
       return bill;
     } catch (error) {
@@ -62,6 +62,7 @@ export class PaymentService {
             id: true,
             name: true,
             shortName: true,
+            address: true,
           },
         },
         creator: {
@@ -93,6 +94,8 @@ export class PaymentService {
         recordingDate: 'desc',
       },
     });
+    console.log('🚀 ~ PaymentService ~ findBillHistoryByUser ~ bills:', bills);
+
     return bills;
   }
 
@@ -104,5 +107,54 @@ export class PaymentService {
       ORDER BY "createdAt" DESC;
     `;
     return orderItems;
+  }
+
+  async deleteBillById(id: string) {
+    const transactionFn = async (prisma: PrismaClient) => {
+
+      const billItems = await prisma.billItems.findMany({
+        where: { billId: id },
+        select: {
+          paid: true,
+          orderItemId: true,
+          orderItem: {
+            select:{
+              customerPaid:true
+            }
+          },
+        },
+      });
+      if (!billItems || billItems.length == 0) {
+        throw new NotFoundException();
+      }
+      const updatePromises = [];
+      // Duyệt qua từng billItem để thực hiện các thay đổi
+      for (const item of billItems) {
+        // Tính toán giá trị mới cho customerPaid
+        const newCustomerPaid = item.orderItem.customerPaid - item.paid;
+        // Cập nhật customerPaid
+        const updatePromise = prisma.orderItems.update({
+          where: { id: item.orderItemId },
+          data: { customerPaid: newCustomerPaid },
+        });
+        // Thêm promise vào mảng
+        updatePromises.push(updatePromise);
+      }
+      await Promise.all(updatePromises);
+
+      await prisma.billItems.deleteMany({
+        where: { billId: id },
+      });
+
+      await prisma.bills.delete({
+        where: { id: id },
+      });
+      return id
+    };
+
+    const bill = await this.prismaService.$transaction(transactionFn);
+    console.log("🚀 ~ PaymentService ~ transactionFn ~ id:", bill)
+
+    return bill;
   }
 }
