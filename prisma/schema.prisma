@@ -71,30 +71,43 @@ enum bookingType {
   ADVICE
 }
 
+enum genderType {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model users {
-  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  customId       String       @unique
-  email          String?      @unique
-  name           String
-  phone          String?      @unique
-  phone2         String?
-  avatar         String?
-  rankId         String       @db.Uuid
-  creatorId      String?      @db.Uuid
-  active         active       @default(ACTIVE)
-  zaloId         String?
-  address        String?
-  points         Int          @default(0)
-  clinicId       String?      @db.Uuid
-  city           String?
-  sellerOnlineId String?      @db.Uuid
-  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
-  rank           ranks        @relation(fields: [rankId], references: [id])
-  clinic         clinics?     @relation(fields: [clinicId], references: [id])
-  creator        staffs?      @relation(fields: [creatorId], references: [id], name: "creatorUsers")
-  sellerOnline   staffs?      @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineUsers")
-  orderItems     orderItems[] @relation(name: "userOrderItems")
-  bills          bills[]      @relation(name: "userBill")
+  id                String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customId          String       @unique
+  email             String?      @unique
+  name              String
+  phone             String?      @unique
+  phone2            String?
+  avatar            String?
+  rankId            String       @db.Uuid
+  creatorId         String?      @db.Uuid
+  active            active       @default(ACTIVE)
+  zaloId            String?
+  customerResources String?      @db.Uuid
+  address           String?
+  facebookLink      String?
+  zaloLink          String?
+  instagramLink     String?
+  birthday          DateTime?    @db.Date
+  gender            genderType?
+  points            Int          @default(0)
+  clinicId          String?      @db.Uuid
+  city              String?
+  sellerOnlineId    String?      @db.Uuid
+  notes    String?     
+  createdAt         DateTime     @default(now()) @db.Timestamptz(6)
+  rank              ranks        @relation(fields: [rankId], references: [id])
+  clinic            clinics?     @relation(fields: [clinicId], references: [id])
+  creator           staffs?      @relation(fields: [creatorId], references: [id], name: "creatorUsers")
+  sellerOnline      staffs?      @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineUsers")
+  orderItems        orderItems[] @relation(name: "userOrderItems")
+  bills             bills[]      @relation(name: "userBill")
 }
 
 model ranks {

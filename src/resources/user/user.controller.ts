@@ -37,8 +37,8 @@ export class UserController {
     return this.userService.findAll(filters,+skip,+take);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string, @GetStaff() staff: any) {
-    return this.userService.findOne(id, staff);
+  @Get('basic-info/:id')
+  findBasicInfoUser(@Param('id') id: string) {
+    return this.userService.findBasicInfoUser(id);
   }
 }

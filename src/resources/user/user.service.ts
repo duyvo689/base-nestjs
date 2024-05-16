@@ -129,12 +129,15 @@ export class UserService {
           createUserMaybeBookingDto?.booking &&
           createUserMaybeBookingDto?.booking?.appointmentDate
         ) {
-          await this.bookingService.create({
-            ...createUserMaybeBookingDto?.booking,
-            userCustomId: user.customId,
-            creatorId: staffId,
-            userId: user.id,
-          },staffId);
+          await this.bookingService.create(
+            {
+              ...createUserMaybeBookingDto?.booking,
+              userCustomId: user.customId,
+              creatorId: staffId,
+              userId: user.id,
+            },
+            staffId,
+          );
         }
         return user;
       };
@@ -164,12 +167,32 @@ export class UserService {
         sellerOnline: true,
       },
     });
-    console.log("🚀 ~ UserService ~ findAll ~ users:", users)
     return users;
   }
 
-  findOne(id: string, staff: any) {
-    return `This action returns a #${id} user`;
+  async findBasicInfoUser(id: string) {
+    const user = await this.prismaService.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        phone2: true,
+        birthday: true,
+        avatar: true,
+        customerResources: true,
+        address: true,
+        facebookLink: true,
+        zaloLink: true,
+        instagramLink: true,
+        gender: true,
+        points: true,
+        city: true,
+        createdAt: true,
+        notes:true
+      },
+    });
+    return user;
   }
 
   createUserCustomId(clinicId?: string) {
