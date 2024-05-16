@@ -72,6 +72,14 @@ export class OrderItemService {
             id: true,
             name: true,
             shortName: true,
+            address:true
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
           },
         },
       },

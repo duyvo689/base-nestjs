@@ -339,7 +339,7 @@ model bookings {
   doctorId        String?           @db.Uuid
   technicianId    String?           @db.Uuid
   clinicId        String            @db.Uuid
-  appointmentDate DateTime          @db.Date
+  appointmentDate DateTime          @default(now()) @db.Timestamptz(6)
   creatorId       String            @db.Uuid
   sellerOnlineId  String?           @db.Uuid
   sellerOfflineId String?           @db.Uuid
@@ -352,7 +352,6 @@ model bookings {
   leftReasonId    String?           @db.Uuid
   leftNotes       String?
   cancelReasonId  String?           @db.Uuid
-  recordingDate   DateTime          @default(now()) @db.Timestamptz(6)
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   leftReason      leftReason?       @relation(fields: [leftReasonId], references: [id])
   creator         staffs            @relation(fields: [creatorId], references: [id], name: "creatorBooking")

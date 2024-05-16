@@ -49,6 +49,9 @@ export class BookingService {
             service: { select: { name: true, id: true, customId: true } },
           },
         },
+        clinic: {
+          select: { id: true, shortName: true, name: true },
+        },
         doctor: {
           select: { name: true },
         },
