@@ -11,14 +11,20 @@ import {
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { GetStaff } from 'src/configs/decorators';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post()
-  create(@Body() createPaymentDto: CreatePaymentDto) {
-    return this.paymentService.create(createPaymentDto);
+  create(@Body() createPaymentDto: CreatePaymentDto, @GetStaff('sub') staffId:string) {
+    return this.paymentService.create(createPaymentDto,staffId);
+  }
+
+  @Get('user-bill-history')
+  findBillHistoryByUser(@Query('userId') userId: string) {
+    return this.paymentService.findBillHistoryByUser(userId);
   }
 
   @Get('user-debt')

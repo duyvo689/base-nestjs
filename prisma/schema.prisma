@@ -94,6 +94,7 @@ model users {
   creator        staffs?      @relation(fields: [creatorId], references: [id], name: "creatorUsers")
   sellerOnline   staffs?      @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineUsers")
   orderItems     orderItems[] @relation(name: "userOrderItems")
+  bills          bills[]      @relation(name: "userBill")
 }
 
 model ranks {
@@ -135,6 +136,7 @@ model staffs {
   sellerOnlineOrderItem  orderItems[]  @relation(name: "sellerOnlineOrderItem")
   sellerOfflineOrderItem orderItems[]  @relation(name: "sellerOfflineOrderItem")
   salesSupportOrderItem  orderItems[]  @relation(name: "salesSupportOrderItem")
+  bills                  bills[]       @relation(name: "creatorBill")
 }
 
 model permissions {
@@ -215,6 +217,7 @@ model clinics {
   users                users[]
   bookings             bookings[]
   orderItems           orderItems[]
+  bills                bills[]               @relation(name: "clinicBill")
 }
 
 model advertises {
@@ -243,33 +246,35 @@ model functionLogs {
 }
 
 model orderItems {
-  id              String    @id @unique
-  orderId         String?
-  userId          String    @db.Uuid
-  itemName        String
-  serviceId       String?   @db.Uuid
-  comboId         String?
-  isCombo         Boolean   @default(false)
-  isCancel        Boolean   @default(false)
-  isLock          Boolean   @default(false)
-  price           Int       @default(0)
-  discount        Int       @default(0)
-  quantity        Int       @default(1)
-  customerPaid    Int       @default(0)
-  sellerOnlineId  String?   @db.Uuid
-  sellerOfflineId String?   @db.Uuid
-  salesSupportId  String?   @db.Uuid
-  creatorId       String?   @db.Uuid
-  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  notes           String?
-  clinicId        String    @db.Uuid
-  service         services? @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
-  creator         staffs?   @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
-  sellerOnline    staffs?   @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
-  sellerOffline   staffs?   @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
-  salesSupport    staffs?   @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
-  user            users?    @relation(fields: [userId], references: [id], name: "userOrderItems")
-  clinic          clinics   @relation(fields: [clinicId], references: [id])
+  id                String      @id @unique
+  orderId           String?
+  userId            String      @db.Uuid
+  itemName          String
+  serviceId         String?     @db.Uuid
+  comboId           String?
+  isCombo           Boolean     @default(false)
+  isCancel          Boolean     @default(false)
+  isLock            Boolean     @default(false)
+  price             Int         @default(0)
+  discount          Int         @default(0)
+  quantity          Int         @default(1)
+  completedSessions Int         @default(0)
+  customerPaid      Int         @default(0)
+  sellerOnlineId    String?     @db.Uuid
+  sellerOfflineId   String?     @db.Uuid
+  salesSupportId    String?     @db.Uuid
+  creatorId         String?     @db.Uuid
+  createdAt         DateTime    @default(now()) @db.Timestamptz(6)
+  notes             String?
+  clinicId          String      @db.Uuid
+  service           services?   @relation(fields: [serviceId], references: [id], name: "serviceOrderItem")
+  creator           staffs?     @relation(fields: [creatorId], references: [id], name: "creatorOrderItem")
+  sellerOnline      staffs?     @relation(fields: [sellerOnlineId], references: [id], name: "sellerOnlineOrderItem")
+  sellerOffline     staffs?     @relation(fields: [sellerOfflineId], references: [id], name: "sellerOfflineOrderItem")
+  salesSupport      staffs?     @relation(fields: [salesSupportId], references: [id], name: "salesSupportOrderItem")
+  user              users?      @relation(fields: [userId], references: [id], name: "userOrderItems")
+  clinic            clinics     @relation(fields: [clinicId], references: [id])
+  billItems         billItems[]
 }
 
 model cancelReasonOfItem {
@@ -281,16 +286,6 @@ model cancelReasonOfItem {
   creatorId      String?  @db.Uuid
 }
 
-model payOrderItemHistory {
-  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  orderItemId     String
-  recordingDate   DateTime @default(now()) @db.Timestamptz(6)
-  revenue         Int
-  paymentMethodId String   @db.Uuid
-  creatorId       String   @db.Uuid
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-}
-
 model couponApplyOrderItem {
   orderItemId String
   couponId    String   @db.Uuid
@@ -300,11 +295,41 @@ model couponApplyOrderItem {
 }
 
 model bills {
-  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String   @id
+  paymentMethodId     String   @db.Uuid
+  clinicId            String   @db.Uuid
+  totalPrice          Int //Tổng giá tiền của lần thanh toán
+  totalCurrentReceipt Int //Tổng giá tiền khách chi trả hiện tại
+  totalAmountPaid     Int // Tổng giá tiền khách trả trước đóÏ
+  totalDiscount       Int
+  recordingDate       DateTime @default(now()) @db.Timestamptz(6)
+  exportInvoiceDate   DateTime @default(now()) @db.Timestamptz(6)
+  creatorId           String   @db.Uuid
+  userId              String   @db.Uuid
+  notes               String?
+  numberPrinted       Int      @default(0)
+  createdAt           DateTime @default(now()) @db.Timestamptz(6)
+
+  clinic        clinics       @relation(fields: [clinicId], references: [id], name: "clinicBill")
+  creator       staffs        @relation(fields: [creatorId], references: [id], name: "creatorBill")
+  user          users         @relation(fields: [userId], references: [id], name: "userBill")
+  paymentMethod paymentMethod @relation(fields: [paymentMethodId], references: [id], name: "paymentMethodBill")
+  billItems     billItems[]
+}
+
+model billItems {
+  id            String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  billId        String
+  total         Int
+  discount      Int
+  paid          Int
+  debt          Int
+  quantity      Int
+  orderItemName String
   orderItemId   String
-  recordingDate DateTime @default(now()) @db.Timestamptz(6)
-  creatorId     String   @db.Uuid
-  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  bill          bills      @relation(fields: [billId], references: [id])
+  orderItem     orderItems @relation(fields: [orderItemId], references: [id])
 }
 
 model bookings {
@@ -480,4 +505,5 @@ model paymentMethod {
   active    active   @default(ACTIVE)
   sorting   Int?
   createdAt DateTime @default(now()) @db.Timestamptz(6)
+  bills     bills[]  @relation(name: "paymentMethodBill")
 }
